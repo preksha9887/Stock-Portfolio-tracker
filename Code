@@ -1,0 +1,80 @@
+
+import requests
+import json
+
+# Replace with your Alpha Vantage API key
+ALPHA_VANTAGE_API_KEY = '4J4JICAUMXHWAV1I'
+
+class Stock:
+    def __init__(self, symbol, shares):
+        self.symbol = symbol
+        self.shares = shares
+        self.price = 0.0  # Current price fetched from API
+        self.update_price()
+
+    def update_price(self):
+        url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={self.symbol}&apikey={ALPHA_VANTAGE_API_KEY}'
+        response = requests.get(url)
+        data = response.json()
+        if 'Global Quote' in data:
+            self.price = float(data['Global Quote']['05. price'])
+        else:
+            print(f"Error fetching data for {self.symbol}")
+
+    def get_value(self):
+        return self.shares * self.price
+
+    def __str__(self):
+        return f"{self.symbol}: {self.shares} shares, Current Price: ${self.price:.2f}, Total Value: ${self.get_value():.2f}"
+
+
+class Portfolio:
+    def __init__(self):
+        self.stocks = []
+
+    def add_stock(self, symbol, shares):
+        stock = Stock(symbol, shares)
+        self.stocks.append(stock)
+
+    def remove_stock(self, symbol):
+        self.stocks = [stock for stock in self.stocks if stock.symbol != symbol]
+
+    def update_prices(self):
+        for stock in self.stocks:
+            stock.update_price()
+
+    def portfolio_value(self):
+        total_value = sum(stock.get_value() for stock in self.stocks)
+        return total_value
+
+    def print_portfolio(self):
+        for stock in self.stocks:
+            print(stock)
+        print(f"Total Portfolio Value: ${self.portfolio_value():.2f}")
+
+
+# Example usage:
+
+portfolio = Portfolio()
+
+# Adding stocks
+portfolio.add_stock('AAPL', 5)
+portfolio.add_stock('MSFT', 3)
+
+# Printing initial portfolio
+print("Initial Portfolio:")
+portfolio.print_portfolio()
+
+# Simulate updating prices (normally would be done periodically)
+portfolio.update_prices()
+
+# Printing updated portfolio
+print("\nPortfolio after price update:")
+portfolio.print_portfolio()
+
+# Removing a stock
+portfolio.remove_stock('MSFT')
+
+# Printing portfolio after removal
+print("\nPortfolio after removing MSFT:")
+portfolio.print_portfolio()
